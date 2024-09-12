@@ -11,7 +11,7 @@ locals {
 }
 
 module "github-runner" {
-  for_each      = toset(var.github_runners)
+  for_each      = tomap({ for runner in var.github_runners : runner.hostname => runner })
   source        = "HappyPathway/github-runner/ecs"
   ecs_cluster   = aws_ecs_cluster.github-runner.name
   hostname      = each.value.hostname
@@ -22,4 +22,7 @@ module "github-runner" {
   runner_labels = lookup(each.value, "labels", local.labels)
   subnets       = lookup(each.value, "subnets", var.subnets)
   tag           = lookup(each.value, "tag", "github-runner")
+  depends_on    = [
+    aws_ecs_cluster.github-runner
+  ]
 }
